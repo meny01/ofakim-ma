@@ -34,7 +34,7 @@ namespace ofakim_hw_ma.Controllers
         public async Task<IActionResult> SetData()
         {
             await _exservice.SetData();
-            return View();
+            return Ok();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

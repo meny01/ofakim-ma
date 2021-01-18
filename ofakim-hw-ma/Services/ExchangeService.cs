@@ -24,30 +24,30 @@ namespace ofakim_hw_ma.Services
       
         public async Task<List<ExchangeRateViewModel>> GetData()
         {
-            var model = await getCurencyAsync();
-            //List<ExchangeRateViewModel> model = new List<ExchangeRateViewModel>
-            //{
-            //    new ExchangeRateViewModel(){ExName="ex1",Rate=22,UpdateDate = DateTime.Now },
-            //    new ExchangeRateViewModel(){ExName="ex1",Rate=11,UpdateDate = DateTime.Now }
-
-            //};
+            var model = _context.exConvertEntities.Select(x => new ExchangeRateViewModel
+            {
+                ExName = x.ExCorrencyName,
+                Rate = x.Rate,
+                UpdateDate = x.UpdateDate
+            }).ToList();
+       
             return model;
         }
 
-        private async Task<List<ExchangeRateViewModel>> getCurencyAsync()
+        private async Task<List<ExConvertEntity>> getCurencyAsync()
         {
-            List<ExchangeRateViewModel> exchangeRateList = new List<ExchangeRateViewModel>();
+            List<ExConvertEntity> exchangeRateList = new List<ExConvertEntity>();
             var USD_ILS = await _currencyConverter.GetCurrencyExchange("USD","ILS");
-            exchangeRateList.Add(new ExchangeRateViewModel() { ExName = "USD/ILS", Rate = USD_ILS, UpdateDate = DateTime.Now });
+            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId=1, ExCorrencyName = "USD/ILS", Rate = USD_ILS, UpdateDate = DateTime.Now });
 
             var GBP_EUR = await _currencyConverter.GetCurrencyExchange("GBP", "EUR");
-            exchangeRateList.Add(new ExchangeRateViewModel() { ExName = "GBP/EUR", Rate = GBP_EUR, UpdateDate = DateTime.Now });
+            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 2, ExCorrencyName = "GBP/EUR", Rate = GBP_EUR, UpdateDate = DateTime.Now });
 
             var EUR_JPY = await _currencyConverter.GetCurrencyExchange("EUR", "JPY");
-            exchangeRateList.Add(new ExchangeRateViewModel() { ExName = "EUR/JPY", Rate = EUR_JPY, UpdateDate = DateTime.Now });
+            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 3, ExCorrencyName = "EUR/JPY", Rate = EUR_JPY, UpdateDate = DateTime.Now });
 
             var EUR_USD = await _currencyConverter.GetCurrencyExchange("EUR", "USD");
-            exchangeRateList.Add(new ExchangeRateViewModel() { ExName = "EUR/USD", Rate = EUR_USD, UpdateDate = DateTime.Now });
+            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 4, ExCorrencyName = "EUR/USD", Rate = EUR_USD, UpdateDate = DateTime.Now });
 
             //USD/ILS, GBP/EUR, EUR/JPY, EUR/USD
 
@@ -57,9 +57,9 @@ namespace ofakim_hw_ma.Services
 
         public async Task SetData()
         {
-            var model = await getCurencyAsync();
-            //var data = 
-            _context.exConvertEntities.UpdateRange();
+            var data = await getCurencyAsync();           
+            await _context.exConvertEntities.AddRangeAsync(data);
+            await _context.SaveChangesAsync();
         }
     }
     public interface IExchangeService
