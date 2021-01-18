@@ -21,7 +21,11 @@ namespace ofakim_hw_ma.Services
             _currencyConverter = currencyConverter;
             _context = context;
         }
-      
+        /// <summary>
+        /// get data from db 
+        /// use ExchangeRateViewModel because the Id not relevent
+        /// </summary>
+        /// <returns>List of data</returns>
         public async Task<List<ExchangeRateViewModel>> GetData()
         {
             var model = _context.exConvertEntities.Select(x => new ExchangeRateViewModel
@@ -34,73 +38,39 @@ namespace ofakim_hw_ma.Services
             return model;
         }
 
-        private async Task getCurencyAsync()
+        private async Task GetAndUpdateCurencyAsync()
         {
             List<ExConvertEntity> exisistData = _context.exConvertEntities.ToList(); //get all exist data
-            List<ExConvertEntity> exchangeRateListNew = new List<ExConvertEntity>(); //for new data
-            List<ExConvertEntity> exchangeRateListUpdate = new List<ExConvertEntity>(); //for update data
 
-            //need to separate this function to update and add content 
-
-            var USD_ILSdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "USD/ILS");
-            var USD_ILS = await _currencyConverter.GetCurrencyExchange("USD", "ILS");
-
-            if (USD_ILSdata != null)
-            {
-                USD_ILSdata.Rate = USD_ILS;
-                USD_ILSdata.UpdateDate = DateTime.Now;
-                exchangeRateListUpdate.Add(USD_ILSdata);
-            }
-            else
-               exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "USD/ILS", Rate = USD_ILS, UpdateDate = DateTime.Now });
-            ///////////
-            var GBP_EURdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "GBP/EUR");
-            var GBP_EUR = await _currencyConverter.GetCurrencyExchange("GBP", "EUR");
-            
-            if (GBP_EURdata != null)
-            {
-                GBP_EURdata.Rate = GBP_EUR;
-                GBP_EURdata.UpdateDate = DateTime.Now;
-                exchangeRateListUpdate.Add(GBP_EURdata);
-            }
-            else
-                exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "GBP/EUR", Rate = GBP_EUR, UpdateDate = DateTime.Now });
-            //////////
-            var EUR_JPYdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "EUR/JPY");
-            var EUR_JPY = await _currencyConverter.GetCurrencyExchange("EUR", "JPY");
-
-            if (EUR_JPYdata != null)
-            {
-                EUR_JPYdata.Rate = EUR_JPY;
-                EUR_JPYdata.UpdateDate = DateTime.Now;
-                exchangeRateListUpdate.Add(EUR_JPYdata);
-            }
-            else
-              exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "EUR/JPY", Rate = EUR_JPY, UpdateDate = DateTime.Now });
-            /////////
-            var EUR_USDdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "EUR/USD");
-            var EUR_USD = await _currencyConverter.GetCurrencyExchange("EUR", "USD");
-
-            if (EUR_USDdata != null)
-            {
-                EUR_USDdata.Rate = EUR_USD;
-                EUR_USDdata.UpdateDate = DateTime.Now;
-                exchangeRateListUpdate.Add(EUR_USDdata);
-            }
-            else
-                exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "EUR/USD", Rate = EUR_USD, UpdateDate = DateTime.Now });
-
-            //USD/ILS, GBP/EUR, EUR/JPY, EUR/USD
-
-            await _context.exConvertEntities.AddRangeAsync(exchangeRateListUpdate);
-            _context.exConvertEntities.UpdateRange();
-
+            await AddOrUpdate(exisistData, "USD/ILS");
+            await AddOrUpdate(exisistData, "GBP/EUR");
+            await AddOrUpdate(exisistData, "EUR/JPY");
+            await AddOrUpdate(exisistData, "EUR/USD");
+    
             
         }
+        private async Task AddOrUpdate(List<ExConvertEntity> exisistData, string Currency)
+        {
+            string[] strSplit = Currency.Split("/");
+            var Currencydata = exisistData.FirstOrDefault(x => x.ExCorrencyName == Currency);
+            var Rate = await _currencyConverter.GetCurrencyExchange(strSplit[0], strSplit[1]);
 
+            if (Currencydata != null)
+            {
+                Currencydata.Rate = Rate;
+                Currencydata.UpdateDate = DateTime.Now;
+                _context.Update(Currencydata);
+            }
+            else
+                _context.Add(new ExConvertEntity() { ExCorrencyName = Currency, Rate = Rate, UpdateDate = DateTime.Now });
+        }
+        /// <summary>
+        /// update or add data to db
+        /// </summary>
+        /// <returns></returns>
         public async Task SetData()
         {
-            await getCurencyAsync();           
+            await GetAndUpdateCurencyAsync();           
             await _context.SaveChangesAsync();
         }
     }
