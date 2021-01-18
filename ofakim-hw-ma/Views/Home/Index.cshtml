@@ -4,6 +4,22 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <button class="btn btn-primary">set data</button>
+    <button class="btn btn-primary" onclick="SaveData()">set data</button>
     <a asp-controller="Home" asp-action="GetData" class="btn btn-primary">get data</a>
 </div>
+@section Scripts {
+    <script type="text/javascript">
+        function SaveData() {
+            $.ajax({
+                type: 'POST',
+                url: "/Home/SetData",
+                dataType: "text",
+                success: function () { alert("Save Complete") },
+                error: function () {
+                    alert("Something went wrong")
+                }
+
+            });
+        }
+    </script>
+}
