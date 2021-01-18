@@ -1,0 +1,26 @@
+﻿@model List<ExchangeRateViewModel>
+@{
+    ViewData["Title"] = "GetData";
+}
+
+<h1>GetData</h1>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>currency</th>
+        <th>rate</th>
+        <th>dateUpdate</th>
+    </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td>@item.ExName</td>
+            <td>@item.Rate</td>
+            <td>@item.UpdateDate</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
