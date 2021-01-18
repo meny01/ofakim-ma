@@ -34,31 +34,73 @@ namespace ofakim_hw_ma.Services
             return model;
         }
 
-        private async Task<List<ExConvertEntity>> getCurencyAsync()
+        private async Task getCurencyAsync()
         {
-            List<ExConvertEntity> exchangeRateList = new List<ExConvertEntity>();
-            var USD_ILS = await _currencyConverter.GetCurrencyExchange("USD","ILS");
-            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId=1, ExCorrencyName = "USD/ILS", Rate = USD_ILS, UpdateDate = DateTime.Now });
+            List<ExConvertEntity> exisistData = _context.exConvertEntities.ToList(); //get all exist data
+            List<ExConvertEntity> exchangeRateListNew = new List<ExConvertEntity>(); //for new data
+            List<ExConvertEntity> exchangeRateListUpdate = new List<ExConvertEntity>(); //for update data
 
+            //need to separate this function to update and add content 
+
+            var USD_ILSdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "USD/ILS");
+            var USD_ILS = await _currencyConverter.GetCurrencyExchange("USD", "ILS");
+
+            if (USD_ILSdata != null)
+            {
+                USD_ILSdata.Rate = USD_ILS;
+                USD_ILSdata.UpdateDate = DateTime.Now;
+                exchangeRateListUpdate.Add(USD_ILSdata);
+            }
+            else
+               exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "USD/ILS", Rate = USD_ILS, UpdateDate = DateTime.Now });
+            ///////////
+            var GBP_EURdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "GBP/EUR");
             var GBP_EUR = await _currencyConverter.GetCurrencyExchange("GBP", "EUR");
-            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 2, ExCorrencyName = "GBP/EUR", Rate = GBP_EUR, UpdateDate = DateTime.Now });
-
+            
+            if (GBP_EURdata != null)
+            {
+                GBP_EURdata.Rate = GBP_EUR;
+                GBP_EURdata.UpdateDate = DateTime.Now;
+                exchangeRateListUpdate.Add(GBP_EURdata);
+            }
+            else
+                exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "GBP/EUR", Rate = GBP_EUR, UpdateDate = DateTime.Now });
+            //////////
+            var EUR_JPYdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "EUR/JPY");
             var EUR_JPY = await _currencyConverter.GetCurrencyExchange("EUR", "JPY");
-            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 3, ExCorrencyName = "EUR/JPY", Rate = EUR_JPY, UpdateDate = DateTime.Now });
 
+            if (EUR_JPYdata != null)
+            {
+                EUR_JPYdata.Rate = EUR_JPY;
+                EUR_JPYdata.UpdateDate = DateTime.Now;
+                exchangeRateListUpdate.Add(EUR_JPYdata);
+            }
+            else
+              exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "EUR/JPY", Rate = EUR_JPY, UpdateDate = DateTime.Now });
+            /////////
+            var EUR_USDdata = exisistData.FirstOrDefault(x => x.ExCorrencyName == "EUR/USD");
             var EUR_USD = await _currencyConverter.GetCurrencyExchange("EUR", "USD");
-            exchangeRateList.Add(new ExConvertEntity() { ExCorrencytId = 4, ExCorrencyName = "EUR/USD", Rate = EUR_USD, UpdateDate = DateTime.Now });
+
+            if (EUR_USDdata != null)
+            {
+                EUR_USDdata.Rate = EUR_USD;
+                EUR_USDdata.UpdateDate = DateTime.Now;
+                exchangeRateListUpdate.Add(EUR_USDdata);
+            }
+            else
+                exchangeRateListNew.Add(new ExConvertEntity() { ExCorrencyName = "EUR/USD", Rate = EUR_USD, UpdateDate = DateTime.Now });
 
             //USD/ILS, GBP/EUR, EUR/JPY, EUR/USD
 
+            await _context.exConvertEntities.AddRangeAsync(exchangeRateListUpdate);
+            _context.exConvertEntities.UpdateRange();
 
-            return exchangeRateList;
+            
         }
 
         public async Task SetData()
         {
-            var data = await getCurencyAsync();           
-            await _context.exConvertEntities.AddRangeAsync(data);
+            await getCurencyAsync();           
             await _context.SaveChangesAsync();
         }
     }

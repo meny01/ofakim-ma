@@ -17,7 +17,9 @@ namespace ofakim_hw_ma.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-        
+            modelBuilder.Entity<ExConvertEntity>()
+            .HasIndex(u => u.ExCorrencyName)
+            .IsUnique();
         }
     }
 }
